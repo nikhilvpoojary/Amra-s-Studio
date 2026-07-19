@@ -1,9 +1,10 @@
 // Product Detail Page
-import { products } from '../data/products.js';
+import { db } from '../lib/store.js';
 import { renderProductCard } from './home.js';
 import { addToCart } from '../main.js';
 
 export function renderProductDetail(productId) {
+  const products = db.getProducts();
   const product = products.find(p => p.id === parseInt(productId));
   if (!product) {
     return `

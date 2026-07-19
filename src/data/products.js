@@ -1,7 +1,7 @@
 // Product catalog for Amra's Studio
 // Images reference the files from public/images/ directory
 
-export const products = [
+const initialProducts = [
   {
     id: 1,
     name: "Lavender Dream Bouquet",
@@ -281,6 +281,22 @@ export const products = [
   }
 ];
 
+const storedProducts = localStorage.getItem('amras_products');
+let parsedProducts = null;
+try {
+  if (storedProducts) {
+    parsedProducts = JSON.parse(storedProducts);
+  }
+} catch (e) {}
+
+export const products = (parsedProducts && parsedProducts.length >= initialProducts.length)
+  ? parsedProducts
+  : [...initialProducts];
+
+if (!storedProducts || !parsedProducts || parsedProducts.length < initialProducts.length) {
+  localStorage.setItem('amras_products', JSON.stringify(initialProducts));
+}
+
 export const categories = [
   { id: "all", name: "All", icon: "🌺", count: products.length },
   { id: "bouquets", name: "Bouquets", icon: "💐", count: products.filter(p => p.category === "bouquets").length },
@@ -290,6 +306,22 @@ export const categories = [
   { id: "lamps", name: "Floral Lamps", icon: "💡", count: products.filter(p => p.category === "lamps").length },
   { id: "gift-sets", name: "Gift Sets", icon: "🎁", count: products.filter(p => p.category === "gift-sets").length },
 ];
+
+export function saveProductsToStorage(newProductsList) {
+  const listCopy = [...newProductsList];
+  products.length = 0;
+  products.push(...listCopy);
+  localStorage.setItem('amras_products', JSON.stringify(products));
+
+  // Update category counts
+  categories.forEach(cat => {
+    if (cat.id === 'all') {
+      cat.count = products.length;
+    } else {
+      cat.count = products.filter(p => p.category === cat.id).length;
+    }
+  });
+}
 
 export const offerings = [
   { name: "Handmade Bouquets", icon: "💐", desc: "Custom crafted bouquets for every occasion" },

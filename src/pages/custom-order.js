@@ -1,3 +1,5 @@
+import { db } from '../lib/store.js';
+
 // Custom Order Page
 export function renderCustomOrder() {
   return `
@@ -9,7 +11,7 @@ export function renderCustomOrder() {
       </div>
     </div>
 
-    <section class="section">
+    <section class="section" style="padding-top: var(--space-xl);">
       <div class="container container-narrow">
         <div style="background: var(--bg-card); border-radius: var(--radius-xl); padding: var(--space-2xl); box-shadow: var(--shadow-md);">
           <div style="margin-bottom: var(--space-xl); text-align: center;">
@@ -65,6 +67,7 @@ export function renderCustomOrder() {
               <div class="form-group">
                 <label class="form-label">Bouquet Size / Budget</label>
                 <select id="cust-budget">
+                  <option value="">Select size/budget (Optional)</option>
                   <option value="Standard Size (₹500 - ₹1000)">Standard Size (₹500 - ₹1000)</option>
                   <option value="Medium Size (₹1000 - ₹2000)">Medium Size (₹1000 - ₹2000)</option>
                   <option value="Luxurious / Large (₹2000+)">Luxurious / Large (₹2000+)</option>
@@ -89,12 +92,12 @@ export function renderCustomOrder() {
 
             <!-- Image Upload -->
             <div class="form-group">
-              <label class="form-label">Reference Image (Photo of design you want to recreate) *</label>
+              <label class="form-label">Reference Image (Photo of design you want to recreate)</label>
               <div class="upload-area" id="upload-zone">
                 <div class="upload-icon">📷</div>
                 <div class="upload-text">Click to upload your reference image</div>
                 <div class="upload-hint">JPG, PNG, JPEG allowed</div>
-                <input type="file" id="cust-file" accept="image/*" style="display:none;" required />
+                <input type="file" id="cust-file" accept="image/*" style="display:none;" />
                 <div id="file-preview" style="margin-top:var(--space-md); display:none;">
                   <img id="preview-img" src="" style="max-height:150px; margin:0 auto; border-radius:var(--radius-md);" />
                   <p id="file-name" style="margin-top:var(--space-sm); font-size:var(--fs-xs); color:var(--accent-primary); font-weight:bold;"></p>
@@ -103,8 +106,8 @@ export function renderCustomOrder() {
             </div>
 
             <div class="form-group">
-              <label class="form-label">Detailed Description of Customization *</label>
-              <textarea id="cust-desc" required placeholder="Describe what color themes, layout styles, and details you want in your custom arrangement..." rows="4"></textarea>
+              <label class="form-label">Detailed Description of Customization</label>
+              <textarea id="cust-desc" placeholder="Describe what color themes, layout styles, and details you want in your custom arrangement..." rows="4"></textarea>
             </div>
 
             <div style="margin-top: var(--space-2xl);">
@@ -147,7 +150,7 @@ document.addEventListener('change', (e) => {
   }
 });
 
-document.addEventListener('submit', (e) => {
+document.addEventListener('submit', async (e) => {
   if (e.target.id === 'custom-order-form') {
     e.preventDefault();
 
@@ -158,30 +161,73 @@ document.addEventListener('submit', (e) => {
     const budget = document.getElementById('cust-budget').value;
     const desc = document.getElementById('cust-desc').value;
 
-    const lights = document.getElementById('cust-lights').checked ? 'Yes' : 'No';
-    const pearls = document.getElementById('cust-pearls').checked ? 'Yes' : 'No';
-    const note = document.getElementById('cust-note').checked ? 'Yes' : 'No';
+    const lights = document.getElementById('cust-lights').checked;
+    const pearls = document.getElementById('cust-pearls').checked;
+    const note = document.getElementById('cust-note').checked;
 
-    // Format WhatsApp message
-    const message = `Hello Amra's Studio! I'd like to place a Custom Order request.
+    // Get reference image as base64 if uploaded
+    let referenceImage = null;
+    const fileInput = document.getElementById('cust-file');
+    if (fileInput?.files?.[0]) {
+      const previewImg = document.getElementById('preview-img');
+      if (previewImg?.src) {
+        referenceImage = previewImg.src; // Already a data URL from FileReader
+      }
+    }
+
+    // Save inquiry to localStorage (persist for admin panel)
+    try {
+      db.addInquiry({
+        name, phone, email, variety, budget,
+        enhancements: { fairyLights: lights, pearls, handNote: note },
+        description: desc,
+        referenceImage
+      });
+    } catch (err) {
+      console.warn('Could not save inquiry to local storage:', err);
+    }
+
+    // Format WhatsApp message with only filled fields
+    let message = `Hello Amra's Studio! I'd like to place a Custom Order request.
 
 📋 *Customer Details*
 Name: ${name}
-Phone: ${phone}
-Email: ${email || 'N/A'}
+Phone: ${phone}`;
 
-🌸 *Customization Details*
-Variety: ${variety || 'Any'}
-Size/Budget: ${budget}
-Enhancements: Fairy Lights: ${lights}, Pearls: ${pearls}, Custom Note: ${note}
+    if (email) {
+      message += `\nEmail: ${email}`;
+    }
 
-📝 *Description:*
-${desc}
+    let specs = [];
+    if (variety) specs.push(`Variety: ${variety}`);
+    if (budget) specs.push(`Size/Budget: ${budget}`);
 
-*(Note: Custom order includes reference image upload)*`;
+    let activeEnhancements = [];
+    if (lights) activeEnhancements.push('Fairy Lights');
+    if (pearls) activeEnhancements.push('Pearls');
+    if (note) activeEnhancements.push('Custom Note');
+    
+    if (activeEnhancements.length > 0) {
+      specs.push(`Enhancements: ${activeEnhancements.join(', ')}`);
+    }
+
+    if (specs.length > 0) {
+      message += `\n\n🌸 *Customization Details*\n${specs.join('\n')}`;
+    }
+
+    if (desc) {
+      message += `\n\n📝 *Description:*\n${desc}`;
+    }
+
+    if (referenceImage) {
+      message += `\n\n*(Note: Custom order includes reference image upload)*`;
+    }
 
     const encoded = encodeURIComponent(message);
-    const whatsappUrl = `https://wa.me/917387920392?text=${encoded}`; // Using the Goa code & real contact channel target
+    const settings = db.getSettings() || {};
+    const rawNum = settings.whatsapp || '917387920392';
+    const cleanNum = rawNum.replace(/\D/g, '');
+    const whatsappUrl = `https://wa.me/${cleanNum}?text=${encoded}`;
 
     window.open(whatsappUrl, '_blank');
   }

@@ -37,7 +37,9 @@
   --border-light: rgba(0, 0, 0, 0.06);
 
   /* ---- Typography ---- */
-  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-heading: 'Playfair Display', 'Cormorant Garamond', Georgia, serif;
+  --font-script: 'Alex Brush', 'Great Vibes', cursive;
+  --font-subheading: 'Cormorant Garamond', Georgia, serif;
   --font-body: 'Nunito', 'Segoe UI', sans-serif;
 
   --fs-xs: 0.75rem;

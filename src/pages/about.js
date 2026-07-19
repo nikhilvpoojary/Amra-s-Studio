@@ -10,7 +10,7 @@ export function renderAbout() {
     </div>
 
     <!-- About Section -->
-    <section class="section">
+    <section class="section" style="padding-top: var(--space-xl);">
       <div class="container">
         <div class="grid grid-2" style="align-items: center; gap: var(--space-3xl);">
           <div>
@@ -19,7 +19,7 @@ export function renderAbout() {
           </div>
           <div>
             <span class="section-subtitle" style="display:block; margin-bottom:var(--space-sm);">Established September 2025</span>
-            <h2 style="font-size: var(--fs-3xl); margin-bottom: var(--space-lg);">Crafting Everlasting Blooms</h2>
+            <h2 style="font-size: var(--fs-3xl); margin-bottom: var(--space-lg); font-family: var(--font-heading); font-style: italic; font-weight: var(--fw-semibold);">Crafting Everlasting Blooms</h2>
             
             <p style="color: var(--text-secondary); line-height: var(--lh-relaxed); font-size: var(--fs-md);">
               Welcome to <strong>Amra's Studio</strong>, a handmade flower brand based in Margao, Goa, India. 
@@ -55,65 +55,65 @@ export function renderAbout() {
     <section class="section section-alt">
       <div class="container text-center">
         <span class="section-subtitle">What We Excel At</span>
-        <h2>Our Offerings & Specialties</h2>
-        <p class="section-desc" style="margin: 0 auto var(--space-2xl);">
+        <h2 style="font-family: var(--font-heading); font-style: italic; font-size: var(--fs-4xl); font-weight: var(--fw-semibold);">Our Offerings & Specialties</h2>
+        <p class="section-desc" style="margin: 0 auto var(--space-2xl); font-style: italic; font-family: var(--font-subheading); font-weight: var(--fw-light);">
           Every creation is fully customizable to suit your color schemes, themes, sizes, and enhancements.
         </p>
 
         <div class="grid grid-4">
-          <div class="category-card">
+          <div class="category-card" style="background-color: #fdffa2; padding: var(--space-2xl);">
             <div class="category-icon">💐</div>
             <div class="category-name">Handmade Bouquets</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Elegant multi-flower arrangements beautifully wrapped.
             </p>
           </div>
-          <div class="category-card">
+          <div class="category-card" style="background-color: #ddd3ca; padding: var(--space-2xl);">
             <div class="category-icon">🌷</div>
             <div class="category-name">Single Flowers</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Delightful solo stems in personalized packaging.
             </p>
           </div>
-          <div class="category-card">
+          <div class="category-card" style="background-color: #ffd4c4; padding: var(--space-2xl);">
             <div class="category-icon">👰</div>
             <div class="category-name">Bridal Bouquets</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Unfading florals for your special wedding memories.
             </p>
           </div>
-          <div class="category-card">
+          <div class="category-card" style="background-color: #d1efef; padding: var(--space-2xl);">
             <div class="category-icon">🧺</div>
             <div class="category-name">Flower Baskets</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Whimsical wicker baskets filled with gorgeous blooms.
             </p>
           </div>
-          <div class="category-card">
+          <div class="category-card" style="background-color: #EFD7CF; padding: var(--space-2xl);">
             <div class="category-icon">💡</div>
             <div class="category-name">Floral Lamps</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Warm fairy light illuminations inside custom layouts.
             </p>
           </div>
-          <div class="category-card">
+          <div class="category-card" style="background-color: #DDBAAE; padding: var(--space-2xl);">
             <div class="category-icon">✨</div>
             <div class="category-name">Custom Arrangements</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Tailor-made structural variations for any space.
             </p>
           </div>
-          <div class="category-card">
+          <div class="category-card" style="background-color: #EFD7CF; padding: var(--space-2xl);">
             <div class="category-icon">🎁</div>
-            <div class="category-name">Personalized Gift Sets</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <div class="category-name">Gift Sets</div>
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Combined packages featuring notes and gifts.
             </p>
           </div>
-          <div class="category-card">
+          <div class="category-card" style="background-color: #DCD4C1; padding: var(--space-2xl);">
             <div class="category-icon">🧸</div>
             <div class="category-name">Plushie Add-ons</div>
-            <p style="color: var(--text-muted); font-size: var(--fs-sm); margin-top:var(--space-sm);">
+            <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Cute mini plushies woven directly into layouts.
             </p>
           </div>

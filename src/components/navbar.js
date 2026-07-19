@@ -4,6 +4,7 @@ export function renderNavbar() {
     <div class="navbar">
       <div class="navbar-inner">
         <a href="#home" class="navbar-logo">
+          <img src="/images/logo.png" alt="Amra's Studio" class="navbar-logo-img" />
           <div>
             <div class="navbar-logo-text">Amra's Studio</div>
             <div class="navbar-logo-sub">Since 2025</div>

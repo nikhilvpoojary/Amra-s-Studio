@@ -13,13 +13,12 @@ import { renderPolicies } from './pages/policies.js';
 import { renderContact } from './pages/contact.js';
 import { renderAdminLogin } from './pages/admin-login.js';
 import { renderAdminDashboard } from './pages/admin-dashboard.js';
-import { products } from './data/products.js';
 
 
 // ---- Global State ----
 export const state = {
   cart: JSON.parse(localStorage.getItem('amras_cart') || '[]'),
-  admin: JSON.parse(localStorage.getItem('amras_admin') || 'null'),
+  admin: null,
 };
 
 export function saveCart() {
@@ -81,26 +80,77 @@ export function showToast(message) {
   setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
-// ---- Admin Auth ----
-export function loginAdmin(password) {
-  // Simple password check — in production use server-side auth
-  const ADMIN_PASSWORD = 'amra2025';
-  if (password === ADMIN_PASSWORD) {
-    state.admin = { email: 'amrasstudio.co@gmail.com', loggedIn: true, loginTime: Date.now() };
-    localStorage.setItem('amras_admin', JSON.stringify(state.admin));
+import { db } from './lib/store.js';
+
+// ---- Admin Auth & Data Helpers (Pure Frontend LocalStorage-based via unified db store) ----
+export function getAdminProfile() {
+  return db.getAdminProfile();
+}
+
+export function getAdminCredentials() {
+  return db.getCredentials();
+}
+
+export function isAdminLoggedIn() {
+  return sessionStorage.getItem('amras_admin_logged_in') === 'true';
+}
+
+export async function loginAdmin(email, password) {
+  const success = await db.verifyLogin(email, password);
+  if (success) {
+    sessionStorage.setItem('amras_admin_logged_in', 'true');
+    const profile = db.getAdminProfile();
+    state.admin = { ...profile, loggedIn: true };
     return true;
   }
   return false;
 }
 
 export function logoutAdmin() {
+  sessionStorage.removeItem('amras_admin_logged_in');
   state.admin = null;
-  localStorage.removeItem('amras_admin');
-  navigate('home');
+  navigate('hidden-admin-gateway');
 }
 
-export function isAdminLoggedIn() {
-  return state.admin && state.admin.loggedIn;
+export async function updateAdminCredentials(currentPassword, newEmail, newPassword, displayName) {
+  return db.changeCredentials(currentPassword, newEmail, newPassword, displayName);
+}
+
+export function verifyAdminWhatsAppReset(phone) {
+  return db.verifyWhatsAppReset(phone);
+}
+
+export async function resetAdminPassword(email, newPassword) {
+  return db.resetPassword(email, newPassword);
+}
+
+export function getInquiriesFromStorage() {
+  return db.getInquiries();
+}
+
+export function saveInquiryToStorage(inqData) {
+  return db.addInquiry(inqData);
+}
+
+export function updateInquiryStatusInStorage(id, status, notes) {
+  return db.updateInquiryStatus(id, status, notes);
+}
+
+export function getStoreSettingsFromStorage() {
+  return db.getSettings();
+}
+
+export function saveStoreSettingsToStorage(settings) {
+  db.saveSettings(settings);
+}
+
+function restoreAdminSession() {
+  if (isAdminLoggedIn()) {
+    const profile = db.getAdminProfile();
+    if (profile) {
+      state.admin = { ...profile, loggedIn: true };
+    }
+  }
 }
 
 // ---- Router ----
@@ -132,6 +182,13 @@ function getRoute() {
 function renderPage() {
   const { page, param } = getRoute();
   const mainContent = document.getElementById('main-content');
+
+  // Hide storefront navbar/footer on admin routes
+  const isAdminRoute = page === 'admin-dashboard' || page === 'hidden-admin-gateway';
+  const navbarEl = document.getElementById('navbar');
+  const footerEl = document.getElementById('footer');
+  if (navbarEl) navbarEl.style.display = isAdminRoute ? 'none' : 'block';
+  if (footerEl) footerEl.style.display = isAdminRoute ? 'none' : 'block';
 
   // Fade out
   mainContent.style.opacity = '0';
@@ -193,7 +250,7 @@ function bindPageEvents(page, param) {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.addToCart);
-      const product = products.find(p => p.id === id);
+      const product = db.getProducts().find(p => p.id === id);
       if (product) addToCart(product);
     });
   });
@@ -240,6 +297,9 @@ function init() {
     const navbar = document.querySelector('.navbar');
     navbar?.classList.toggle('scrolled', window.scrollY > 50);
   });
+
+  // Restore admin session from sessionStorage
+  restoreAdminSession();
 
   // Cart badge
   updateCartBadge();

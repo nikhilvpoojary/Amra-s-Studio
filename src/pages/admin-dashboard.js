@@ -1,161 +1,966 @@
-import { logoutAdmin, state, showToast } from '../main.js';
-import { products } from '../data/products.js';
+// Admin Dashboard — 4-Tab Sidebar Layout (LocalStorage version)
+// Tabs: Dashboard Stats, Product Catalog, Inquiries Logs, Store Settings
+import {
+  logoutAdmin, showToast, getAdminProfile,
+  getInquiriesFromStorage, updateInquiryStatusInStorage,
+  getStoreSettingsFromStorage, saveStoreSettingsToStorage,
+  updateAdminCredentials, getAdminCredentials
+} from '../main.js';
+import { products, saveProductsToStorage } from '../data/products.js';
 
+// ---- Admin Panel State ----
+let adminState = {
+  activeTab: 'dashboard',
+  products: [],
+  inquiries: [],
+  settings: {},
+  profile: { email: '', displayName: 'Admin' },
+  loading: true
+};
+
+// ---- Main Render (Shell Layout) ----
 export function renderAdminDashboard() {
+  const profile = getAdminProfile();
+  if (profile) {
+    adminState.profile = profile;
+  }
+
+  // Schedule init after DOM injection
+  setTimeout(() => initAdminDashboard(), 50);
+
   return `
-    <div class="page-header" style="background: linear-gradient(135deg, var(--color-savory-sage), var(--color-avocado-smoothie)); color: white;">
-      <div class="container" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:var(--space-md);">
-        <div style="text-align:left;">
-          <span class="section-subtitle" style="color:var(--color-coconut-cream);">Operational Dashboard</span>
-          <h1 style="color:white;">Merchant Control Panel</h1>
-          <p style="color:rgba(255,255,255,0.85); margin:0;">Logged in as: ${state.admin?.email || 'Admin'}</p>
+    <div class="admin-layout">
+      <!-- Top Header Bar -->
+      <header class="admin-header">
+        <div class="admin-header-left" style="display: flex; align-items: center; gap: 0.75rem;">
+          <img src="/images/logo.png" alt="Logo" style="height: 32px; width: auto; object-fit: contain; filter: brightness(0) invert(1);" />
+          <span class="admin-logo">Amra's Studio</span>
+          <span class="admin-ops-badge">Authorized Operations Panel</span>
         </div>
-        <button id="admin-logout-btn" class="btn btn-secondary btn-sm" style="color:white; border-color:white;">Sign Out</button>
+        <div class="admin-header-right">
+          <span class="admin-user-name">${adminState.profile.displayName || 'Admin'}</span>
+          <button class="admin-logout-btn" id="admin-logout-btn">Logout</button>
+        </div>
+      </header>
+
+      <!-- Body: Sidebar + Main -->
+      <div class="admin-body">
+        <!-- Left Sidebar -->
+        <aside class="admin-sidebar">
+          <div class="admin-sidebar-label">CONTROLS</div>
+          <nav class="admin-nav">
+            <a class="admin-nav-item active" data-tab="dashboard">
+              <span class="nav-icon">
+                <svg class="admin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="7" height="9" x="3" y="3" rx="1" />
+                  <rect width="7" height="5" x="14" y="3" rx="1" />
+                  <rect width="7" height="9" x="14" y="10" rx="1" />
+                  <rect width="7" height="5" x="3" y="14" rx="1" />
+                </svg>
+              </span> Dashboard Stats
+            </a>
+            <a class="admin-nav-item" data-tab="products">
+              <span class="nav-icon">
+                <svg class="admin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <ellipse cx="12" cy="5" rx="9" ry="3" />
+                  <path d="M3 5V19A9 3 0 0 0 21 19V5" />
+                  <path d="M3 12A9 3 0 0 0 21 12" />
+                </svg>
+              </span> Product Catalog
+            </a>
+            <a class="admin-nav-item" data-tab="inquiries">
+              <span class="nav-icon">
+                <svg class="admin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1" />
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
+                  <path d="M9 12h6" />
+                  <path d="M9 16h6" />
+                  <path d="M9 8h6" />
+                </svg>
+              </span> Inquiries Logs
+              <span class="admin-nav-badge" id="inquiry-count-badge" style="display:none;">0 new</span>
+            </a>
+            <a class="admin-nav-item" data-tab="settings">
+              <span class="nav-icon">
+                <svg class="admin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.1a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
+                  <circle cx="12" cy="12" r="3" />
+                </svg>
+              </span> Store Settings
+            </a>
+          </nav>
+          <div class="admin-ops-card">
+            <h4>⚡ Operations Mode</h4>
+            <p>Changes persist and reflect immediately on the storefront. All edits are saved in browser storage.</p>
+          </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <div class="admin-main" id="admin-tab-content">
+          <div class="admin-loading">
+            <div class="admin-spinner"></div>
+            Loading dashboard data...
+          </div>
+        </div>
       </div>
     </div>
-
-    <section class="section">
-      <div class="container">
-        <!-- Stats Row -->
-        <div class="grid grid-3" style="margin-bottom:var(--space-3xl);">
-          <div class="admin-stat-card">
-            <div class="admin-stat-value">${products.length}</div>
-            <div class="admin-stat-label">Catalog Products</div>
-          </div>
-          <div class="admin-stat-card" style="border-left-color:var(--color-savory-sage);">
-            <div class="admin-stat-value">₹12,450</div>
-            <div class="admin-stat-label">Mock Sales (Today)</div>
-          </div>
-          <div class="admin-stat-card" style="border-left-color:var(--accent-secondary);">
-            <div class="admin-stat-value">4</div>
-            <div class="admin-stat-label">Pending Inquiries</div>
-          </div>
-        </div>
-
-        <div class="grid" style="grid-template-columns: 2fr 1fr; gap:var(--space-2xl); align-items: start;">
-          <!-- Product Inventory List -->
-          <div style="background:var(--bg-card); border-radius:var(--radius-lg); padding:var(--space-xl); box-shadow:var(--shadow-sm);">
-            <h3 style="margin-bottom:var(--space-lg); font-size:var(--fs-xl);">Product Inventory Management</h3>
-            
-            <div style="overflow-x:auto;">
-              <table style="width:100%; border-collapse:collapse; font-size:var(--fs-sm); text-align:left;">
-                <thead>
-                  <tr style="border-bottom:2px solid var(--border-color); color:var(--text-secondary);">
-                    <th style="padding:10px 5px;">Product</th>
-                    <th style="padding:10px 5px;">Category</th>
-                    <th style="padding:10px 5px;">Price</th>
-                    <th style="padding:10px 5px;">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${products.map(p => `
-                    <tr style="border-bottom:1px solid var(--border-light);">
-                      <td style="padding:12px 5px; display:flex; align-items:center; gap:var(--space-sm);">
-                        <img src="${p.images[0]}" style="width:40px; height:40px; border-radius:var(--radius-sm); object-fit:cover;" />
-                        <strong>${p.name}</strong>
-                      </td>
-                      <td style="padding:12px 5px; text-transform:capitalize;">${p.category.replace('-', ' ')}</td>
-                      <td style="padding:12px 5px;">₹${p.price.toLocaleString('en-IN')}</td>
-                      <td style="padding:12px 5px;">
-                        <button class="btn btn-secondary btn-sm edit-price-btn" data-id="${p.id}" style="padding:6px 12px; font-size:var(--fs-xs);">Edit Price</button>
-                      </td>
-                    </tr>
-                  `).join('')}
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <!-- Quick Add / Edit Side Panel -->
-          <div style="background:var(--bg-secondary); border-radius:var(--radius-lg); padding:var(--space-xl);">
-            <h3 style="margin-bottom:var(--space-lg); font-size:var(--fs-xl);">Add New Product</h3>
-            <form id="admin-add-product-form">
-              <div class="form-group">
-                <label class="form-label">Product Name *</label>
-                <input type="text" id="new-p-name" required placeholder="Lavender Arrangement" />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Category *</label>
-                <select id="new-p-cat" required>
-                  <option value="bouquets">Bouquets</option>
-                  <option value="single-flowers">Single Flowers</option>
-                  <option value="bridal">Bridal</option>
-                  <option value="baskets">Baskets</option>
-                  <option value="lamps">Lamps</option>
-                  <option value="gift-sets">Gift Sets</option>
-                </select>
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Price (₹) *</label>
-                <input type="number" id="new-p-price" required placeholder="999" />
-              </div>
-
-              <div class="form-group">
-                <label class="form-label">Product Description</label>
-                <textarea id="new-p-desc" placeholder="Details about this handmade flower..."></textarea>
-              </div>
-
-              <button type="submit" class="btn btn-primary" style="width:100%;">Create Product Listing</button>
-            </form>
-          </div>
-        </div>
-      </div>
-    </section>
   `;
 }
 
-// Bind admin panel interactions
-document.addEventListener('click', (e) => {
-  if (e.target.id === 'admin-logout-btn') {
-    logoutAdmin();
-  }
+// ---- Initialize: Fetch Data & Render First Tab ----
+function initAdminDashboard() {
+  try {
+    adminState.loading = true;
 
-  // Edit price action
-  if (e.target.classList.contains('edit-price-btn')) {
-    const id = parseInt(e.target.dataset.id);
-    const product = products.find(p => p.id === id);
-    if (product) {
-      const newPrice = prompt(`Enter new price for ${product.name}:`, product.price);
-      if (newPrice !== null && !isNaN(newPrice)) {
-        product.price = parseInt(newPrice);
-        showToast(`Updated price of ${product.name} to ₹${product.price}`);
-        // Force dashboard re-render
-        const mainContent = document.getElementById('main-content');
-        if (mainContent) mainContent.innerHTML = renderAdminDashboard();
-      }
+    // Load local storage / in-memory data
+    adminState.products = products;
+    adminState.inquiries = getInquiriesFromStorage();
+    adminState.settings = getStoreSettingsFromStorage() || {};
+
+    adminState.loading = false;
+
+    // Update pending count badge
+    updatePendingBadge();
+
+    // Render active tab
+    renderActiveTab();
+  } catch (err) {
+    console.error('Failed to load admin data:', err);
+    adminState.loading = false;
+    const content = document.getElementById('admin-tab-content');
+    if (content) {
+      content.innerHTML = `<div class="admin-empty"><div class="admin-empty-icon">⚠️</div><div class="admin-empty-text">Failed to load local settings.</div></div>`;
     }
   }
-});
+}
 
-document.addEventListener('submit', (e) => {
-  if (e.target.id === 'admin-add-product-form') {
-    e.preventDefault();
+function updatePendingBadge() {
+  const pending = adminState.inquiries.filter(i => i.status === 'Pending').length;
+  const badge = document.getElementById('inquiry-count-badge');
+  if (badge) {
+    if (pending > 0) {
+      badge.textContent = `${pending} new`;
+      badge.style.display = 'inline-block';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+}
 
-    const name = document.getElementById('new-p-name').value;
-    const category = document.getElementById('new-p-cat').value;
-    const price = parseInt(document.getElementById('new-p-price').value);
-    const description = document.getElementById('new-p-desc').value;
+function renderActiveTab() {
+  const content = document.getElementById('admin-tab-content');
+  if (!content) return;
 
-    const newId = products.length + 1;
-    // Add custom mock product
-    products.push({
-      id: newId,
-      name,
-      category,
-      price,
-      description,
-      images: ["/images/20260429_180635(0)(1).jpg"], // Default fallback image from user assets
-      flowers: ["Mixed"],
-      inStock: true
-    });
+  switch (adminState.activeTab) {
+    case 'dashboard': content.innerHTML = renderDashboardTab(); break;
+    case 'products': content.innerHTML = renderProductsTab(); break;
+    case 'inquiries': content.innerHTML = renderInquiriesTab(); break;
+    case 'settings': content.innerHTML = renderSettingsTab(); break;
+  }
 
-    showToast(`Success: Created "${name}" product listing!`);
-    // Reset form
-    document.getElementById('admin-add-product-form').reset();
-    // Re-render
-    const mainContent = document.getElementById('main-content');
-    if (mainContent) mainContent.innerHTML = renderAdminDashboard();
+  // Update active nav state
+  document.querySelectorAll('.admin-nav-item').forEach(item => {
+    item.classList.toggle('active', item.dataset.tab === adminState.activeTab);
+  });
+}
+
+// ============================================
+// TAB 1: DASHBOARD STATS
+// ============================================
+function renderDashboardTab() {
+  const totalInquiries = adminState.inquiries.length;
+  const pendingInquiries = adminState.inquiries.filter(i => i.status === 'Pending').length;
+  const totalProducts = adminState.products.length;
+  const outOfStock = adminState.products.filter(p => !p.inStock).length;
+  const whatsapp = adminState.settings.whatsapp || 'N/A';
+
+  // Latest 5 inquiries for the table
+  const latest = adminState.inquiries.slice(0, 5);
+
+  return `
+    <h2>Studio Performance Overview</h2>
+
+    <!-- Stat Cards -->
+    <div class="admin-stats-grid">
+      <div class="admin-stat-card">
+        <div class="admin-stat-icon">📩</div>
+        <div class="admin-stat-value">${totalInquiries}</div>
+        <div class="admin-stat-label">Total Inquiries</div>
+        <div class="admin-stat-sub">${pendingInquiries} pending action</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-icon">🛍️</div>
+        <div class="admin-stat-value">${totalProducts}</div>
+        <div class="admin-stat-label">Catalog Products</div>
+        <div class="admin-stat-sub">Standard items</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-icon">⚠️</div>
+        <div class="admin-stat-value">${outOfStock}</div>
+        <div class="admin-stat-label">Out of Stock</div>
+        <div class="admin-stat-sub">Require replenishment</div>
+      </div>
+      <div class="admin-stat-card">
+        <div class="admin-stat-icon">💬</div>
+        <div class="admin-stat-value" style="font-size:1.1rem;">+${whatsapp}</div>
+        <div class="admin-stat-label">Contact Destination</div>
+        <div class="admin-stat-sub">WhatsApp on file</div>
+      </div>
+    </div>
+
+    <!-- Latest Submissions Table -->
+    <div class="admin-card">
+      <div class="admin-card-body">
+        <div class="admin-table-header">
+          <h3>Latest Client Submissions</h3>
+          <a class="admin-table-link" data-action="goto-inquiries">View All Logs →</a>
+        </div>
+        ${latest.length === 0 ? `
+          <div class="admin-empty">
+            <div class="admin-empty-icon">📭</div>
+            <div class="admin-empty-text">No inquiries received yet</div>
+          </div>
+        ` : `
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Client</th>
+                <th>Bespoke Item</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${latest.map(inq => `
+                <tr>
+                  <td>${formatDate(inq.date)}</td>
+                  <td>
+                    <span class="admin-client-name">${escapeHtml(inq.name)}</span>
+                    <span class="admin-client-phone">${escapeHtml(inq.phone)}</span>
+                  </td>
+                  <td>${escapeHtml(inq.variety || inq.description?.slice(0, 40) + '...')}</td>
+                  <td><span class="admin-badge admin-badge-${statusClass(inq.status)}">${inq.status}</span></td>
+                  <td><button class="admin-btn admin-btn-view" data-action="view-inquiry" data-id="${inq.id}">View</button></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        `}
+      </div>
+    </div>
+  `;
+}
+
+// ============================================
+// TAB 2: PRODUCT CATALOG
+// ============================================
+function renderProductsTab() {
+  return `
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+      <h2 style="margin-bottom:0;">Product Catalog</h2>
+      <button class="admin-btn admin-btn-primary" data-action="add-product" style="padding:0.5rem 1.25rem; font-size:0.85rem;">+ Add New Product</button>
+    </div>
+
+    <div class="admin-card">
+      ${adminState.products.length === 0 ? `
+        <div class="admin-card-body">
+          <div class="admin-empty">
+            <div class="admin-empty-icon">📦</div>
+            <div class="admin-empty-text">No products in catalog yet</div>
+          </div>
+        </div>
+      ` : `
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Product</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Customizable</th>
+              <th>Stock</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${adminState.products.map(p => `
+              <tr>
+                <td>
+                  <div class="admin-product-cell">
+                    <img src="${p.images?.[0] || '/images/20260429_180635(0)(1).jpg'}" class="admin-product-thumb" alt="${escapeHtml(p.name)}" />
+                    <strong>${escapeHtml(p.name)}</strong>
+                  </div>
+                </td>
+                <td style="text-transform:capitalize;">${(p.category || '').replace(/-/g, ' ')}</td>
+                <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
+                <td>${p.customizable ? '✅' : '—'}</td>
+                <td><span class="admin-stock-badge ${p.inStock ? 'admin-stock-in' : 'admin-stock-out'}">${p.inStock ? 'In Stock' : 'Out'}</span></td>
+                <td style="display:flex; gap:0.4rem;">
+                  <button class="admin-btn admin-btn-edit" data-action="edit-product" data-id="${p.id}">Edit</button>
+                  <button class="admin-btn admin-btn-delete" data-action="delete-product" data-id="${p.id}">Delete</button>
+                </td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `}
+    </div>
+  `;
+}
+
+// ============================================
+// TAB 3: INQUIRIES LOGS
+// ============================================
+function renderInquiriesTab() {
+  return `
+    <h2>Inquiries Logs</h2>
+
+    <div class="admin-card">
+      ${adminState.inquiries.length === 0 ? `
+        <div class="admin-card-body">
+          <div class="admin-empty">
+            <div class="admin-empty-icon">📭</div>
+            <div class="admin-empty-text">No inquiries received yet. Submissions from the Custom Order page will appear here.</div>
+          </div>
+        </div>
+      ` : `
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Client</th>
+              <th>Bespoke Item</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${adminState.inquiries.map(inq => `
+              <tr class="clickable-row" data-action="view-inquiry" data-id="${inq.id}">
+                <td>${formatDate(inq.date)}</td>
+                <td>
+                  <span class="admin-client-name">${escapeHtml(inq.name)}</span>
+                  <span class="admin-client-phone">${escapeHtml(inq.phone)}</span>
+                </td>
+                <td>${escapeHtml(inq.variety || inq.description?.slice(0, 50) + '...')}</td>
+                <td>
+                  <select class="admin-status-select" data-inquiry-id="${inq.id}" style="padding:0.25rem 0.5rem; border-radius:6px; border:1px solid #e0d4c4; font-size:0.75rem; font-weight:600; background:${statusBg(inq.status)}; cursor:pointer;">
+                    <option value="Pending" ${inq.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                    <option value="In Progress" ${inq.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                    <option value="Completed" ${inq.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                  </select>
+                </td>
+                <td><button class="admin-btn admin-btn-view" data-action="view-inquiry" data-id="${inq.id}">View</button></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      `}
+    </div>
+  `;
+}
+
+// ============================================
+// TAB 4: STORE SETTINGS
+// ============================================
+function renderSettingsTab() {
+  const s = adminState.settings;
+  const p = adminState.profile;
+  const creds = getAdminCredentials() || {};
+
+  return `
+    <h2>Store Settings</h2>
+
+    <!-- Store Information -->
+    <div class="admin-settings-section">
+      <h3>📍 Store Information</h3>
+      <form id="store-settings-form">
+        <div class="admin-form-row">
+          <div class="admin-form-group">
+            <label class="admin-form-label">WhatsApp Number</label>
+            <input type="text" class="admin-form-input" id="setting-whatsapp" value="${escapeHtml(s.whatsapp || '')}" placeholder="e.g. 917387920392" />
+            <div class="admin-form-hint">Include country code, no + or spaces</div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Business Email</label>
+            <input type="email" class="admin-form-input" id="setting-email" value="${escapeHtml(s.email || '')}" placeholder="e.g. studio@example.com" />
+          </div>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Business Address</label>
+          <input type="text" class="admin-form-input" id="setting-address" value="${escapeHtml(s.address || '')}" placeholder="e.g. Margao, Goa, India" />
+        </div>
+        <div class="admin-form-row">
+          <div class="admin-form-group">
+            <label class="admin-form-label">Instagram URL</label>
+            <input type="url" class="admin-form-input" id="setting-instagram" value="${escapeHtml(s.instagram || '')}" placeholder="https://instagram.com/..." />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">YouTube URL</label>
+            <input type="url" class="admin-form-input" id="setting-youtube" value="${escapeHtml(s.youtube || '')}" placeholder="https://youtube.com/..." />
+          </div>
+        </div>
+        <button type="submit" class="admin-btn admin-btn-save">Save Store Settings</button>
+      </form>
+    </div>
+
+    <!-- Account Security -->
+    <div class="admin-settings-section">
+      <h3>🔐 Account Security</h3>
+      <p style="font-size:0.82rem; color:#818263; margin-bottom:1.25rem;">
+        Change your admin login credentials. You must enter your current password to make any changes.
+      </p>
+      <form id="credentials-form">
+        <div id="cred-error" class="admin-form-error" style="display:none; margin-bottom:1rem; padding:0.75rem; background:rgba(203,120,133,0.1); border-radius:8px;"></div>
+        <div id="cred-success" class="admin-form-success" style="display:none;"></div>
+
+        <div class="admin-form-group">
+          <label class="admin-form-label">Current Password *</label>
+          <input type="password" class="admin-form-input" id="cred-current-pass" required placeholder="Enter your current password" />
+        </div>
+
+        <div class="admin-form-row">
+          <div class="admin-form-group">
+            <label class="admin-form-label">New Email (optional)</label>
+            <input type="email" class="admin-form-input" id="cred-new-email" value="${escapeHtml(p.email || '')}" placeholder="New login email" />
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Display Name (optional)</label>
+            <input type="text" class="admin-form-input" id="cred-display-name" value="${escapeHtml(p.displayName || '')}" placeholder="Owner display name" />
+          </div>
+        </div>
+
+
+
+        <div class="admin-form-row">
+          <div class="admin-form-group">
+            <label class="admin-form-label">New Password (optional)</label>
+            <input type="password" class="admin-form-input" id="cred-new-pass" placeholder="Min 8 characters" minlength="8" />
+            <div class="password-strength-bar"><div class="password-strength-fill" id="pass-strength-fill"></div></div>
+            <div class="password-strength-text" id="pass-strength-text"></div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Confirm New Password</label>
+            <input type="password" class="admin-form-input" id="cred-confirm-pass" placeholder="Re-enter new password" />
+          </div>
+        </div>
+
+        <button type="submit" class="admin-btn admin-btn-primary" style="padding:0.5rem 1.5rem; font-size:0.82rem;">Update Credentials</button>
+      </form>
+    </div>
+  `;
+}
+
+// ============================================
+// MODALS
+// ============================================
+function showInquiryModal(inquiry) {
+  const existing = document.querySelector('.admin-modal-overlay');
+  if (existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.className = 'admin-modal-overlay';
+  modal.innerHTML = `
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3>Inquiry #${inquiry.id} — ${escapeHtml(inquiry.name)}</h3>
+        <button class="admin-modal-close" data-action="close-modal">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Date</span>
+          <span class="admin-detail-value">${new Date(inquiry.date).toLocaleString()}</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Client Name</span>
+          <span class="admin-detail-value">${escapeHtml(inquiry.name)}</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Phone</span>
+          <span class="admin-detail-value">${escapeHtml(inquiry.phone)}</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Email</span>
+          <span class="admin-detail-value">${escapeHtml(inquiry.email || 'N/A')}</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Flower Type</span>
+          <span class="admin-detail-value">${escapeHtml(inquiry.variety || 'Any')}</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Budget/Size</span>
+          <span class="admin-detail-value">${escapeHtml(inquiry.budget || 'Standard')}</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Enhancements</span>
+          <span class="admin-detail-value">${
+            inquiry.enhancements
+              ? Object.entries(inquiry.enhancements).filter(([,v]) => v).map(([k]) => k).join(', ') || 'None'
+              : 'None'
+          }</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Description</span>
+          <span class="admin-detail-value">${escapeHtml(inquiry.description || '')}</span>
+        </div>
+        <div class="admin-detail-row">
+          <span class="admin-detail-label">Status</span>
+          <span class="admin-detail-value"><span class="admin-badge admin-badge-${statusClass(inquiry.status)}">${inquiry.status}</span></span>
+        </div>
+        ${inquiry.referenceImage ? `
+          <div class="admin-detail-row" style="flex-direction:column;">
+            <span class="admin-detail-label">Reference Photo</span>
+            <img src="${inquiry.referenceImage}" class="admin-detail-image" alt="Reference" />
+          </div>
+        ` : ''}
+        ${inquiry.notes ? `
+          <div class="admin-detail-row">
+            <span class="admin-detail-label">Admin Notes</span>
+            <span class="admin-detail-value">${escapeHtml(inquiry.notes)}</span>
+          </div>
+        ` : ''}
+      </div>
+      <div class="admin-modal-footer">
+        <button class="admin-btn admin-btn-view" data-action="close-modal">Close</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+function showProductModal(product = null) {
+  const existing = document.querySelector('.admin-modal-overlay');
+  if (existing) existing.remove();
+
+  const isEdit = !!product;
+  const title = isEdit ? `Edit: ${product.name}` : 'Add New Product';
+
+  const modal = document.createElement('div');
+  modal.className = 'admin-modal-overlay';
+  modal.innerHTML = `
+    <div class="admin-modal">
+      <div class="admin-modal-header">
+        <h3>${title}</h3>
+        <button class="admin-modal-close" data-action="close-modal">✕</button>
+      </div>
+      <div class="admin-modal-body">
+        <form id="product-modal-form">
+          <input type="hidden" id="pm-id" value="${product?.id || ''}" />
+          <div class="admin-form-group">
+            <label class="admin-form-label">Product Name *</label>
+            <input type="text" class="admin-form-input" id="pm-name" required value="${escapeHtml(product?.name || '')}" placeholder="e.g. Lavender Dream Bouquet" />
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="admin-form-label">Category *</label>
+              <select class="admin-form-select" id="pm-category" required>
+                <option value="bouquets" ${product?.category === 'bouquets' ? 'selected' : ''}>Bouquets</option>
+                <option value="single-flowers" ${product?.category === 'single-flowers' ? 'selected' : ''}>Single Flowers</option>
+                <option value="bridal" ${product?.category === 'bridal' ? 'selected' : ''}>Bridal</option>
+                <option value="baskets" ${product?.category === 'baskets' ? 'selected' : ''}>Baskets</option>
+                <option value="lamps" ${product?.category === 'lamps' ? 'selected' : ''}>Lamps</option>
+                <option value="gift-sets" ${product?.category === 'gift-sets' ? 'selected' : ''}>Gift Sets</option>
+                <option value="custom" ${product?.category === 'custom' ? 'selected' : ''}>Custom</option>
+              </select>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Price (₹) *</label>
+              <input type="number" class="admin-form-input" id="pm-price" required value="${product?.price || ''}" placeholder="999" min="1" />
+            </div>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="admin-form-label">Original Price (₹)</label>
+              <input type="number" class="admin-form-input" id="pm-original-price" value="${product?.originalPrice || ''}" placeholder="Optional strikethrough price" />
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Badge</label>
+              <select class="admin-form-select" id="pm-badge">
+                <option value="" ${!product?.badge ? 'selected' : ''}>None</option>
+                <option value="New" ${product?.badge === 'New' ? 'selected' : ''}>New</option>
+                <option value="Bestseller" ${product?.badge === 'Bestseller' ? 'selected' : ''}>Bestseller</option>
+                <option value="Premium" ${product?.badge === 'Premium' ? 'selected' : ''}>Premium</option>
+                <option value="Sale" ${product?.badge === 'Sale' ? 'selected' : ''}>Sale</option>
+              </select>
+            </div>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Description</label>
+            <textarea class="admin-form-textarea" id="pm-description" placeholder="Describe this product...">${escapeHtml(product?.description || '')}</textarea>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group">
+              <label class="admin-form-label">Image Path</label>
+              <input type="text" class="admin-form-input" id="pm-image" value="${product?.images?.[0] || '/images/20260429_180635(0)(1).jpg'}" placeholder="/images/filename.jpg" />
+              <div class="admin-form-hint">Path relative to public folder</div>
+            </div>
+            <div class="admin-form-group">
+              <label class="admin-form-label">Flowers (comma separated)</label>
+              <input type="text" class="admin-form-input" id="pm-flowers" value="${(product?.flowers || []).join(', ')}" placeholder="Roses, Tulips, Lilies" />
+            </div>
+          </div>
+          <div class="admin-form-row">
+            <div class="admin-form-group" style="display:flex; align-items:center; gap:0.75rem; padding-top:1.5rem;">
+              <label class="admin-toggle">
+                <input type="checkbox" id="pm-customizable" ${product?.customizable !== false ? 'checked' : ''} />
+                <span class="admin-toggle-slider"></span>
+              </label>
+              <span style="font-size:0.85rem; font-weight:500;">Customizable</span>
+            </div>
+            <div class="admin-form-group" style="display:flex; align-items:center; gap:0.75rem; padding-top:1.5rem;">
+              <label class="admin-toggle">
+                <input type="checkbox" id="pm-in-stock" ${product?.inStock !== false ? 'checked' : ''} />
+                <span class="admin-toggle-slider"></span>
+              </label>
+              <span style="font-size:0.85rem; font-weight:500;">In Stock</span>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="admin-modal-footer">
+        <button class="admin-btn admin-btn-view" data-action="close-modal">Cancel</button>
+        <button class="admin-btn admin-btn-primary" data-action="save-product">${isEdit ? 'Save Changes' : 'Create Product'}</button>
+      </div>
+    </div>
+  `;
+  document.body.appendChild(modal);
+}
+
+// ============================================
+// EVENT HANDLERS (Delegated)
+// ============================================
+document.addEventListener('click', (e) => {
+  const action = e.target.dataset?.action;
+  const target = e.target.closest('[data-action]');
+  const resolvedAction = action || target?.dataset?.action;
+
+  // Admin Logout
+  if (e.target.id === 'admin-logout-btn') {
+    logoutAdmin();
+    return;
+  }
+
+  // Tab navigation
+  const navItem = e.target.closest('.admin-nav-item');
+  if (navItem && navItem.dataset.tab) {
+    adminState.activeTab = navItem.dataset.tab;
+    renderActiveTab();
+    return;
+  }
+
+  // Close modal
+  if (resolvedAction === 'close-modal' || e.target.classList.contains('admin-modal-overlay')) {
+    const overlay = document.querySelector('.admin-modal-overlay');
+    if (overlay) overlay.remove();
+    return;
+  }
+
+  // Go to inquiries tab
+  if (resolvedAction === 'goto-inquiries') {
+    adminState.activeTab = 'inquiries';
+    renderActiveTab();
+    return;
+  }
+
+  // View inquiry detail
+  if (resolvedAction === 'view-inquiry') {
+    const id = parseInt(e.target.dataset?.id || target?.dataset?.id);
+    const inquiry = adminState.inquiries.find(i => i.id === id);
+    if (inquiry) showInquiryModal(inquiry);
+    return;
+  }
+
+  // Add product
+  if (resolvedAction === 'add-product') {
+    showProductModal(null);
+    return;
+  }
+
+  // Edit product
+  if (resolvedAction === 'edit-product') {
+    const id = parseInt(e.target.dataset?.id || target?.dataset?.id);
+    const product = adminState.products.find(p => p.id === id);
+    if (product) showProductModal(product);
+    return;
+  }
+
+  // Delete product
+  if (resolvedAction === 'delete-product') {
+    const id = parseInt(e.target.dataset?.id || target?.dataset?.id);
+    const product = adminState.products.find(p => p.id === id);
+    if (product && confirm(`Delete "${product.name}"? This cannot be undone.`)) {
+      deleteProduct(id);
+    }
+    return;
+  }
+
+  // Save product (from modal)
+  if (resolvedAction === 'save-product') {
+    saveProduct();
+    return;
   }
 });
+
+// Status select change
+document.addEventListener('change', (e) => {
+  if (e.target.classList.contains('admin-status-select')) {
+    const id = parseInt(e.target.dataset.inquiryId);
+    const newStatus = e.target.value;
+    updateInquiryStatus(id, newStatus);
+    e.target.style.background = statusBg(newStatus);
+  }
+
+  // Password strength indicator
+  if (e.target.id === 'cred-new-pass') {
+    updatePasswordStrength(e.target.value);
+  }
+});
+
+// Password input live strength
+document.addEventListener('input', (e) => {
+  if (e.target.id === 'cred-new-pass') {
+    updatePasswordStrength(e.target.value);
+  }
+});
+
+// Form submissions
+document.addEventListener('submit', (e) => {
+  // Store settings form
+  if (e.target.id === 'store-settings-form') {
+    e.preventDefault();
+    saveStoreSettings();
+    return;
+  }
+
+  // Credentials form
+  if (e.target.id === 'credentials-form') {
+    e.preventDefault();
+    updateCredentials();
+    return;
+  }
+
+  // Product modal form (catch Enter key)
+  if (e.target.id === 'product-modal-form') {
+    e.preventDefault();
+    saveProduct();
+    return;
+  }
+});
+
+// ============================================
+// LOCAL STORAGE ACTIONS
+// ============================================
+function deleteProduct(id) {
+  try {
+    adminState.products = adminState.products.filter(p => p.id !== id);
+    saveProductsToStorage(adminState.products);
+    showToast('Product deleted successfully');
+    renderActiveTab();
+  } catch (err) {
+    showToast('Error deleting product');
+  }
+}
+
+function saveProduct() {
+  const id = document.getElementById('pm-id')?.value;
+  const name = document.getElementById('pm-name')?.value;
+  const category = document.getElementById('pm-category')?.value;
+  const price = document.getElementById('pm-price')?.value;
+  const originalPrice = document.getElementById('pm-original-price')?.value;
+  const badge = document.getElementById('pm-badge')?.value;
+  const description = document.getElementById('pm-description')?.value;
+  const image = document.getElementById('pm-image')?.value;
+  const flowers = document.getElementById('pm-flowers')?.value?.split(',').map(f => f.trim()).filter(Boolean);
+  const customizable = document.getElementById('pm-customizable')?.checked;
+  const inStock = document.getElementById('pm-in-stock')?.checked;
+
+  if (!name || !category || !price) {
+    showToast('Name, category, and price are required');
+    return;
+  }
+
+  const updatedProduct = {
+    name, category, price: Number(price), description,
+    images: [image || '/images/20260429_180635(0)(1).jpg'],
+    flowers: flowers?.length ? flowers : ['Mixed'],
+    customizable, inStock,
+    badge: badge || undefined,
+    originalPrice: originalPrice ? Number(originalPrice) : undefined
+  };
+
+  try {
+    if (id) {
+      // Edit existing
+      const pId = parseInt(id);
+      const idx = adminState.products.findIndex(p => p.id === pId);
+      if (idx !== -1) {
+        adminState.products[idx] = { ...adminState.products[idx], ...updatedProduct, id: pId };
+      }
+    } else {
+      // Create new
+      const nextId = adminState.products.length > 0 ? Math.max(...adminState.products.map(p => p.id)) + 1 : 1;
+      adminState.products.push({ ...updatedProduct, id: nextId });
+    }
+
+    saveProductsToStorage(adminState.products);
+    showToast(id ? 'Product updated!' : 'Product created!');
+    const overlay = document.querySelector('.admin-modal-overlay');
+    if (overlay) overlay.remove();
+    renderActiveTab();
+  } catch (err) {
+    showToast('Error saving product');
+  }
+}
+
+function updateInquiryStatus(id, status) {
+  try {
+    const updated = updateInquiryStatusInStorage(id, status);
+    if (updated) {
+      const idx = adminState.inquiries.findIndex(i => i.id === id);
+      if (idx !== -1) adminState.inquiries[idx] = updated;
+      updatePendingBadge();
+      showToast(`Status updated to "${status}"`);
+    } else {
+      showToast('Failed to update status');
+    }
+  } catch (err) {
+    showToast('Error updating status');
+  }
+}
+
+function saveStoreSettings() {
+  const data = {
+    whatsapp: document.getElementById('setting-whatsapp')?.value || '',
+    email: document.getElementById('setting-email')?.value || '',
+    address: document.getElementById('setting-address')?.value || '',
+    instagram: document.getElementById('setting-instagram')?.value || '',
+    youtube: document.getElementById('setting-youtube')?.value || ''
+  };
+
+  try {
+    saveStoreSettingsToStorage(data);
+    adminState.settings = data;
+    showToast('Store settings saved!');
+  } catch (err) {
+    showToast('Error saving settings');
+  }
+}
+
+async function updateCredentials() {
+  const errorEl = document.getElementById('cred-error');
+  const successEl = document.getElementById('cred-success');
+  if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
+  if (successEl) successEl.style.display = 'none';
+
+  const currentPassword = document.getElementById('cred-current-pass')?.value;
+  const newEmail = document.getElementById('cred-new-email')?.value;
+  const displayName = document.getElementById('cred-display-name')?.value;
+  const newPassword = document.getElementById('cred-new-pass')?.value;
+  const confirmNewPassword = document.getElementById('cred-confirm-pass')?.value;
+
+  if (!currentPassword) {
+    if (errorEl) { errorEl.textContent = 'Current password is required'; errorEl.style.display = 'block'; }
+    return;
+  }
+
+  if (newPassword && newPassword.length < 8) {
+    if (errorEl) { errorEl.textContent = 'New password must be at least 8 characters'; errorEl.style.display = 'block'; }
+    return;
+  }
+
+  if (newPassword && newPassword !== confirmNewPassword) {
+    if (errorEl) { errorEl.textContent = 'New password and confirmation do not match'; errorEl.style.display = 'block'; }
+    return;
+  }
+
+  try {
+    await updateAdminCredentials(currentPassword, newEmail, newPassword, displayName);
+    
+    const emailChanged = newEmail && newEmail.toLowerCase() !== adminState.profile.email.toLowerCase();
+    const passwordChanged = !!newPassword;
+
+    if (emailChanged || passwordChanged) {
+      showToast('Credentials updated — logging you out...');
+      sessionStorage.setItem('amras_cred_updated', '1');
+      setTimeout(() => {
+        logoutAdmin();
+      }, 1500);
+    } else {
+      showToast('Security settings updated successfully!');
+      const profile = getAdminProfile();
+      if (profile) {
+        adminState.profile = profile;
+        // Update owner name badge in header dynamically
+        const badgeEl = document.querySelector('.admin-user-name');
+        if (badgeEl) badgeEl.textContent = profile.displayName;
+      }
+      renderActiveTab();
+    }
+  } catch (err) {
+    if (errorEl) { errorEl.textContent = err.message || 'Failed to update credentials'; errorEl.style.display = 'block'; }
+  }
+}
+
+// ============================================
+// UTILITIES
+// ============================================
+function escapeHtml(str) {
+  if (!str) return '';
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr);
+  return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function statusClass(status) {
+  if (status === 'Pending') return 'pending';
+  if (status === 'In Progress') return 'progress';
+  if (status === 'Completed') return 'completed';
+  return 'pending';
+}
+
+function statusBg(status) {
+  if (status === 'Pending') return '#F6EAD4';
+  if (status === 'In Progress') return '#dde0bb';
+  if (status === 'Completed') return '#e8d4d7';
+  return '#F6EAD4';
+}
+
+function updatePasswordStrength(password) {
+  const fill = document.getElementById('pass-strength-fill');
+  const text = document.getElementById('pass-strength-text');
+  if (!fill || !text) return;
+
+  if (!password) {
+    fill.className = 'password-strength-fill';
+    fill.style.width = '0';
+    text.textContent = '';
+    return;
+  }
+
+  let score = 0;
+  if (password.length >= 8) score++;
+  if (password.length >= 12) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/\d/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 2) {
+    fill.className = 'password-strength-fill weak';
+    text.className = 'password-strength-text weak';
+    text.textContent = 'Weak';
+  } else if (score <= 3) {
+    fill.className = 'password-strength-fill medium';
+    text.className = 'password-strength-text medium';
+    text.textContent = 'Medium';
+  } else {
+    fill.className = 'password-strength-fill strong';
+    text.className = 'password-strength-text strong';
+    text.textContent = 'Strong';
+  }
+}

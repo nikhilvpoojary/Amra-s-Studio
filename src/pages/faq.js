@@ -11,7 +11,7 @@ export function renderFaq() {
       </div>
     </div>
 
-    <section class="section">
+    <section class="section" style="padding-top: var(--space-xl);">
       <div class="container container-narrow">
         <div id="faq-accordion">
           ${faqs.map((faq, index) => `

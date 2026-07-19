@@ -1,9 +1,23 @@
 // Shop Catalog Page
-import { products, categories } from '../data/products.js';
+import { db } from '../lib/store.js';
+import { categories } from '../data/products.js';
 import { renderProductCard } from './home.js';
 import { addToCart } from '../main.js';
 
 export function renderShop() {
+  const liveProducts = db.getProducts();
+  
+  // Dynamically calculate category counts based on current store products
+  const categoryCounts = {
+    all: liveProducts.length,
+    bouquets: liveProducts.filter(p => p.category === 'bouquets').length,
+    'single-flowers': liveProducts.filter(p => p.category === 'single-flowers').length,
+    bridal: liveProducts.filter(p => p.category === 'bridal').length,
+    baskets: liveProducts.filter(p => p.category === 'baskets').length,
+    lamps: liveProducts.filter(p => p.category === 'lamps').length,
+    'gift-sets': liveProducts.filter(p => p.category === 'gift-sets').length
+  };
+
   return `
     <div class="page-header">
       <div class="container">
@@ -13,20 +27,20 @@ export function renderShop() {
       </div>
     </div>
 
-    <section class="section">
+    <section class="section" style="padding-top: var(--space-xl);">
       <div class="container">
         <!-- Category Filters -->
         <div class="filter-tabs" id="shop-filters">
           ${categories.map(cat => `
             <button class="filter-tab ${cat.id === 'all' ? 'active' : ''}" data-filter="${cat.id}">
-              ${cat.icon} ${cat.name} (${cat.count})
+              ${cat.icon} ${cat.name} (${categoryCounts[cat.id] || 0})
             </button>
           `).join('')}
         </div>
 
         <!-- Sort -->
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--space-xl);flex-wrap:wrap;gap:var(--space-md);">
-          <p style="color:var(--text-muted);margin:0;" id="product-count">${products.length} products</p>
+          <p style="color:var(--text-muted);margin:0;" id="product-count">${liveProducts.length} products</p>
           <select id="shop-sort" style="width:auto;min-width:180px;">
             <option value="default">Sort by: Featured</option>
             <option value="price-low">Price: Low to High</option>
@@ -37,7 +51,7 @@ export function renderShop() {
 
         <!-- Product Grid -->
         <div class="grid grid-3" id="product-grid">
-          ${products.map(p => renderProductCard(p)).join('')}
+          ${liveProducts.map(p => renderProductCard(p)).join('')}
         </div>
       </div>
     </section>
@@ -49,13 +63,14 @@ document.addEventListener('click', (e) => {
   const filterTab = e.target.closest('.filter-tab');
   if (filterTab) {
     const filter = filterTab.dataset.filter;
+    const liveProducts = db.getProducts();
 
     // Update active tab
     document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
     filterTab.classList.add('active');
 
     // Filter products
-    const filtered = filter === 'all' ? products : products.filter(p => p.category === filter);
+    const filtered = filter === 'all' ? liveProducts : liveProducts.filter(p => p.category === filter);
     const grid = document.getElementById('product-grid');
     const count = document.getElementById('product-count');
     if (grid) {
@@ -71,7 +86,8 @@ document.addEventListener('change', (e) => {
   if (e.target.id === 'shop-sort') {
     const sortValue = e.target.value;
     const activeFilter = document.querySelector('.filter-tab.active')?.dataset.filter || 'all';
-    let filtered = activeFilter === 'all' ? [...products] : products.filter(p => p.category === activeFilter);
+    const liveProducts = db.getProducts();
+    let filtered = activeFilter === 'all' ? [...liveProducts] : liveProducts.filter(p => p.category === activeFilter);
 
     switch (sortValue) {
       case 'price-low': filtered.sort((a, b) => a.price - b.price); break;
@@ -88,11 +104,12 @@ document.addEventListener('change', (e) => {
 });
 
 function bindAddToCartButtons() {
+  const liveProducts = db.getProducts();
   document.querySelectorAll('[data-add-to-cart]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.addToCart);
-      const product = products.find(p => p.id === id);
+      const product = liveProducts.find(p => p.id === id);
       if (product) {
         addToCart(product);
       }
