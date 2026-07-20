@@ -105,20 +105,50 @@ document.addEventListener('change', (e) => {
 
 function bindAddToCartButtons() {
   const liveProducts = db.getProducts();
+
+  // Card qty minus
+  document.querySelectorAll('[data-card-qty-minus]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.cardQtyMinus;
+      const valEl = document.querySelector(`.card-qty-value[data-card-qty-value="${id}"]`);
+      if (valEl) {
+        let val = parseInt(valEl.textContent) || 1;
+        valEl.textContent = Math.max(1, val - 1);
+      }
+    });
+  });
+
+  // Card qty plus
+  document.querySelectorAll('[data-card-qty-plus]').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const id = btn.dataset.cardQtyPlus;
+      const valEl = document.querySelector(`.card-qty-value[data-card-qty-value="${id}"]`);
+      if (valEl) {
+        let val = parseInt(valEl.textContent) || 1;
+        valEl.textContent = val + 1;
+      }
+    });
+  });
+
   document.querySelectorAll('[data-add-to-cart]').forEach(btn => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const id = parseInt(btn.dataset.addToCart);
       const product = liveProducts.find(p => p.id === id);
       if (product) {
-        addToCart(product);
+        const qtyEl = document.querySelector(`.card-qty-value[data-card-qty-value="${id}"]`);
+        const qty = qtyEl ? parseInt(qtyEl.textContent) || 1 : 1;
+        addToCart(product, qty);
+        if (qtyEl) qtyEl.textContent = '1';
       }
     });
   });
 
   document.querySelectorAll('[data-product-id]').forEach(card => {
     card.addEventListener('click', (e) => {
-      if (!e.target.closest('[data-add-to-cart]')) {
+      if (!e.target.closest('[data-add-to-cart]') && !e.target.closest('.card-qty-btn')) {
         window.location.hash = `product/${card.dataset.productId}`;
       }
     });

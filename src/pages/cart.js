@@ -33,7 +33,7 @@ export function renderCart() {
 
     <section class="section">
       <div class="container">
-        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: var(--space-2xl); align-items: start;">
+        <div class="grid cart-grid" style="align-items: start;">
           <!-- Cart Items -->
           <div>
             ${state.cart.map(item => `

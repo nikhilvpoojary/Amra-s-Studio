@@ -19,7 +19,7 @@ export function renderCheckout() {
 
     <section class="section">
       <div class="container">
-        <div class="grid" style="grid-template-columns: 2fr 1fr; gap: var(--space-2xl); align-items: start;">
+        <div class="grid checkout-grid" style="align-items: start;">
           <!-- Shipping Form -->
           <div style="background: var(--bg-card); border-radius: var(--radius-lg); padding: var(--space-xl); box-shadow: var(--shadow-sm);">
             <h3 style="margin-bottom:var(--space-lg); font-size:var(--fs-xl);">Shipping Address</h3>

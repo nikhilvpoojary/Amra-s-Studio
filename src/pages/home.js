@@ -178,6 +178,23 @@ export function renderProductCard(product) {
           ₹${product.price.toLocaleString('en-IN')}
           ${product.originalPrice ? `<span class="original-price">₹${product.originalPrice.toLocaleString('en-IN')}</span>` : ''}
         </div>
+        
+        <!-- Mobile stock status and quantity stepper row -->
+        <div class="product-card-stepper-row">
+          <span class="product-card-stock ${isOutOfStock ? 'out-of-stock' : ''}">${isOutOfStock ? 'Out of Stock' : 'In Stock'}</span>
+          ${!isOutOfStock ? `
+          <div class="product-card-stepper">
+            <button class="card-qty-btn" data-card-qty-minus="${product.id}">−</button>
+            <span class="card-qty-value" data-card-qty-value="${product.id}">1</span>
+            <button class="card-qty-btn" data-card-qty-plus="${product.id}">+</button>
+          </div>
+          ` : ''}
+        </div>
+        
+        <!-- Mobile full-width Add to Cart button -->
+        <button class="btn btn-primary btn-sm product-card-mobile-btn" data-add-to-cart="${product.id}" ${isOutOfStock ? 'disabled' : ''}>
+          🛒 Add to Cart
+        </button>
       </div>
     </div>
   `;
