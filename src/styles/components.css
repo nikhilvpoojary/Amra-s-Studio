@@ -514,7 +514,7 @@
 }
 
 .hero-title {
-  font-size: var(--fs-5xl);
+  font-size: clamp(2.25rem, 6.5vw, var(--fs-5xl));
   font-weight: var(--fw-bold);
   line-height: 1.1;
   margin-bottom: var(--space-lg);
@@ -716,7 +716,7 @@
   }
 
   .hero-title {
-    font-size: var(--fs-3xl);
+    font-size: clamp(2rem, 8vw, var(--fs-3xl));
   }
 
   .hero-desc {
@@ -729,10 +729,36 @@
 
   .hero-image {
     order: -1;
+    min-height: auto;
+  }
+
+  .hero-image-bouquet {
+    max-height: 45vh;
+    max-width: 90%;
   }
 
   .hero-float-badge {
     display: none;
+  }
+
+  /* Reposition decorative flowers slightly inward to prevent page edge clipping */
+  .hero-deco-flower.fd-2 {
+    width: 30px !important;
+    height: 30px !important;
+    left: 45% !important;
+    top: 5% !important;
+  }
+  .hero-deco-flower.fd-4 {
+    width: 32px !important;
+    height: 32px !important;
+    left: 8% !important;
+    top: 50% !important;
+  }
+  .hero-deco-flower.fd-5 {
+    width: 30px !important;
+    height: 30px !important;
+    right: 8% !important;
+    top: 55% !important;
   }
 }
 
