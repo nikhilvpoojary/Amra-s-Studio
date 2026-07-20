@@ -477,7 +477,7 @@
 
 /* ---- Hero ---- */
 .hero {
-  min-height: 90vh;
+  min-height: 80vh;
   display: flex;
   align-items: center;
   position: relative;
@@ -493,7 +493,7 @@
   align-items: center;
   max-width: var(--container-xl);
   margin: 0 auto;
-  padding: var(--space-3xl) var(--space-xl);
+  padding: var(--space-xl) var(--space-xl);
 }
 
 .hero-content {
@@ -647,6 +647,7 @@
   animation: floatBouquet 6s ease-in-out infinite;
   transform-origin: center bottom;
   display: block;
+  margin-top: -60px;
 }
 .hero-image-frame {
   position: relative;
@@ -735,6 +736,7 @@
   .hero-image-bouquet {
     max-height: 45vh;
     max-width: 90%;
+    margin-top: 0;
   }
 
   .hero-float-badge {
