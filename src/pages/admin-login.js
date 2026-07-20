@@ -38,7 +38,7 @@ export function renderAdminLogin() {
 
     <section class="section">
       <div class="container container-narrow">
-        <div style="background:var(--bg-card); padding:var(--space-2xl); border-radius:var(--radius-lg); box-shadow:var(--shadow-md); max-width:420px; margin: 0 auto; position: relative;">
+        <div class="admin-login-card">
           
           <!-- LOGIN WRAPPER -->
           <div id="login-wrapper">

@@ -27,8 +27,7 @@ export function renderProductDetail(productId) {
           <span>${product.name}</span>
         </div>
 
-        <!-- Product Layout -->
-        <div class="grid grid-2" style="gap: var(--space-3xl); align-items: start;">
+        <div class="grid grid-2 product-detail-grid" style="align-items: start;">
           <!-- Image Gallery -->
           <div>
             <div style="border-radius: var(--radius-xl); overflow: hidden; box-shadow: var(--shadow-lg);">
@@ -63,7 +62,7 @@ export function renderProductDetail(productId) {
             </div>
 
             <!-- Customization Options -->
-            <div style="background:var(--bg-secondary);border-radius:var(--radius-lg);padding:var(--space-xl);margin-bottom:var(--space-xl);">
+            <div class="product-customize-box">
               <h4 style="margin-bottom:var(--space-lg);font-size:var(--fs-lg);">✨ Customize Your Order</h4>
               
               <div class="form-group">
@@ -101,7 +100,7 @@ export function renderProductDetail(productId) {
             </div>
 
             <!-- Quantity & Add to Cart -->
-            <div style="display:flex;align-items:center;gap:var(--space-xl);margin-bottom:var(--space-xl);flex-wrap:wrap;">
+            <div class="product-actions-row">
               <div class="qty-selector">
                 <button class="qty-btn" id="qty-minus">−</button>
                 <span class="qty-value" id="qty-value">1</span>
@@ -152,7 +151,7 @@ document.addEventListener('click', (e) => {
   if (e.target.id === 'add-to-cart-btn' || e.target.closest('#add-to-cart-btn')) {
     const btn = e.target.closest('#add-to-cart-btn') || e.target;
     const productId = parseInt(btn.dataset.productId);
-    const product = products.find(p => p.id === productId);
+    const product = db.getProducts().find(p => p.id === productId);
     const qty = parseInt(document.getElementById('qty-value')?.textContent || '1');
     if (product) {
       const customizations = {

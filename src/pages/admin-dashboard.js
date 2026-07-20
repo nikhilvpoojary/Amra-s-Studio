@@ -295,9 +295,11 @@ function renderProductsTab() {
                 <td>₹${Number(p.price).toLocaleString('en-IN')}</td>
                 <td>${p.customizable ? '✅' : '—'}</td>
                 <td><span class="admin-stock-badge ${p.inStock ? 'admin-stock-in' : 'admin-stock-out'}">${p.inStock ? 'In Stock' : 'Out'}</span></td>
-                <td style="display:flex; gap:0.4rem;">
-                  <button class="admin-btn admin-btn-edit" data-action="edit-product" data-id="${p.id}">Edit</button>
-                  <button class="admin-btn admin-btn-delete" data-action="delete-product" data-id="${p.id}">Delete</button>
+                <td>
+                  <div style="display:flex; gap:0.4rem; flex-wrap:nowrap;">
+                    <button class="admin-btn admin-btn-edit" data-action="edit-product" data-id="${p.id}">Edit</button>
+                    <button class="admin-btn admin-btn-delete" data-action="delete-product" data-id="${p.id}">Delete</button>
+                  </div>
                 </td>
               </tr>
             `).join('')}

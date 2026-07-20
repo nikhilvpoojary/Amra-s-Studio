@@ -14,7 +14,7 @@ export function renderPolicies() {
     <section class="section">
       <div class="container container-narrow">
         <!-- Privacy Policy -->
-        <div style="background:var(--bg-card); padding:var(--space-2xl); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm); margin-bottom:var(--space-2xl);">
+        <div class="policy-card" style="margin-bottom:var(--space-2xl);">
           <h2 style="font-size:var(--fs-2xl); margin-bottom:var(--space-md); border-bottom:2px solid var(--color-peach-protein); padding-bottom:var(--space-xs); font-family: var(--font-heading); font-style: italic; font-weight: var(--fw-semibold);">Privacy Policy Summary</h2>
           <p style="color:var(--text-secondary); line-height:var(--lh-relaxed); font-size:var(--fs-md); margin-bottom:0;">
             ${privacyPolicy}
@@ -22,7 +22,7 @@ export function renderPolicies() {
         </div>
 
         <!-- Terms & Conditions -->
-        <div style="background:var(--bg-card); padding:var(--space-2xl); border-radius:var(--radius-lg); box-shadow:var(--shadow-sm);">
+        <div class="policy-card">
           <h2 style="font-size:var(--fs-2xl); margin-bottom:var(--space-md); border-bottom:2px solid var(--color-peach-protein); padding-bottom:var(--space-xs); font-family: var(--font-heading); font-style: italic; font-weight: var(--fw-semibold);">Terms & Conditions Guidelines</h2>
           
           <ul style="display:flex; flex-direction:column; gap:var(--space-md); margin-top:var(--space-lg);">

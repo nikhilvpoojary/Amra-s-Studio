@@ -13,7 +13,7 @@ export function renderCustomOrder() {
 
     <section class="section" style="padding-top: var(--space-xl);">
       <div class="container container-narrow">
-        <div style="background: var(--bg-card); border-radius: var(--radius-xl); padding: var(--space-2xl); box-shadow: var(--shadow-md);">
+        <div class="custom-order-card">
           <div style="margin-bottom: var(--space-xl); text-align: center;">
             <p style="color: var(--text-secondary);">
               Whether you have a specific design in mind or want us to recreate an inspiration photo, 

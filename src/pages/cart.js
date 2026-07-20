@@ -54,7 +54,7 @@ export function renderCart() {
                     <button class="cart-qty-btn increase-qty" data-id="${item.id}">+</button>
                   </div>
                 </div>
-                <button class="cart-remove remove-item" data-id="${item.id}" aria-label="Remove item">✕ Remove</button>
+                <button class="cart-remove remove-item" data-id="${item.id}" aria-label="Remove item">✕ <span class="hide-mobile">Remove</span></button>
               </div>
             `).join('')}
           </div>
