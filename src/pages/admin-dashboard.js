@@ -40,13 +40,21 @@ export function renderAdminDashboard() {
         <div class="admin-header-right">
           <span class="admin-user-name">${adminState.profile.displayName || 'Admin'}</span>
           <button class="admin-logout-btn" id="admin-logout-btn">Logout</button>
+          <div class="admin-nav-toggle" id="admin-nav-toggle">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
         </div>
       </header>
 
+      <!-- Mobile navigation overlay -->
+      <div class="admin-mobile-overlay" id="admin-mobile-overlay"></div>
+
       <!-- Body: Sidebar + Main -->
       <div class="admin-body">
-        <!-- Left Sidebar -->
-        <aside class="admin-sidebar">
+        <!-- Left Sidebar / Drawer -->
+        <aside class="admin-sidebar" id="admin-sidebar">
           <div class="admin-sidebar-label">CONTROLS</div>
           <nav class="admin-nav">
             <a class="admin-nav-item active" data-tab="dashboard">
@@ -87,6 +95,16 @@ export function renderAdminDashboard() {
                   <circle cx="12" cy="12" r="3" />
                 </svg>
               </span> Store Settings
+            </a>
+            <!-- Mobile-only Logout item -->
+            <a class="admin-nav-item admin-mobile-logout" id="admin-mobile-logout-btn">
+              <span class="nav-icon">
+                <svg class="admin-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                  <polyline points="16 17 21 12 16 7" />
+                  <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+              </span> Logout
             </a>
           </nav>
           <div class="admin-ops-card">
@@ -405,51 +423,6 @@ function renderSettingsTab() {
         <button type="submit" class="admin-btn admin-btn-save">Save Store Settings</button>
       </form>
     </div>
-
-    <!-- Account Security -->
-    <div class="admin-settings-section">
-      <h3>🔐 Account Security</h3>
-      <p style="font-size:0.82rem; color:#818263; margin-bottom:1.25rem;">
-        Change your admin login credentials. You must enter your current password to make any changes.
-      </p>
-      <form id="credentials-form">
-        <div id="cred-error" class="admin-form-error" style="display:none; margin-bottom:1rem; padding:0.75rem; background:rgba(203,120,133,0.1); border-radius:8px;"></div>
-        <div id="cred-success" class="admin-form-success" style="display:none;"></div>
-
-        <div class="admin-form-group">
-          <label class="admin-form-label">Current Password *</label>
-          <input type="password" class="admin-form-input" id="cred-current-pass" required placeholder="Enter your current password" />
-        </div>
-
-        <div class="admin-form-row">
-          <div class="admin-form-group">
-            <label class="admin-form-label">New Email (optional)</label>
-            <input type="email" class="admin-form-input" id="cred-new-email" value="${escapeHtml(p.email || '')}" placeholder="New login email" />
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Display Name (optional)</label>
-            <input type="text" class="admin-form-input" id="cred-display-name" value="${escapeHtml(p.displayName || '')}" placeholder="Owner display name" />
-          </div>
-        </div>
-
-
-
-        <div class="admin-form-row">
-          <div class="admin-form-group">
-            <label class="admin-form-label">New Password (optional)</label>
-            <input type="password" class="admin-form-input" id="cred-new-pass" placeholder="Min 8 characters" minlength="8" />
-            <div class="password-strength-bar"><div class="password-strength-fill" id="pass-strength-fill"></div></div>
-            <div class="password-strength-text" id="pass-strength-text"></div>
-          </div>
-          <div class="admin-form-group">
-            <label class="admin-form-label">Confirm New Password</label>
-            <input type="password" class="admin-form-input" id="cred-confirm-pass" placeholder="Re-enter new password" />
-          </div>
-        </div>
-
-        <button type="submit" class="admin-btn admin-btn-primary" style="padding:0.5rem 1.5rem; font-size:0.82rem;">Update Credentials</button>
-      </form>
-    </div>
   `;
 }
 
@@ -593,8 +566,14 @@ function showProductModal(product = null) {
           <div class="admin-form-row">
             <div class="admin-form-group">
               <label class="admin-form-label">Image Path</label>
-              <input type="text" class="admin-form-input" id="pm-image" value="${product?.images?.[0] || '/images/20260429_180635(0)(1).jpg'}" placeholder="/images/filename.jpg" />
-              <div class="admin-form-hint">Path relative to public folder</div>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <input type="text" class="admin-form-input" id="pm-image" value="${product?.images?.[0] || '/images/20260429_180635(0)(1).jpg'}" placeholder="/images/filename.jpg" style="flex: 1;" />
+                <label class="admin-btn admin-btn-view" style="margin: 0; padding: 0.6rem 1rem; font-size: 0.8rem; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 0.3rem; white-space: nowrap;">
+                  📁 Browse
+                  <input type="file" id="pm-image-file" accept="image/*" style="display: none;" />
+                </label>
+              </div>
+              <div class="admin-form-hint">Path relative to public folder, or click Browse to upload</div>
             </div>
             <div class="admin-form-group">
               <label class="admin-form-label">Flowers (comma separated)</label>
@@ -637,8 +616,40 @@ document.addEventListener('click', (e) => {
   const resolvedAction = action || target?.dataset?.action;
 
   // Admin Logout
-  if (e.target.id === 'admin-logout-btn') {
+  if (e.target.id === 'admin-logout-btn' || e.target.id === 'admin-mobile-logout-btn' || e.target.closest('#admin-mobile-logout-btn')) {
     logoutAdmin();
+    return;
+  }
+
+  // Toggle admin mobile sidebar
+  const toggleBtn = e.target.closest('#admin-nav-toggle');
+  if (toggleBtn) {
+    const sidebar = document.getElementById('admin-sidebar');
+    const overlay = document.getElementById('admin-mobile-overlay');
+    if (sidebar && overlay) {
+      const isOpen = sidebar.classList.toggle('open');
+      toggleBtn.classList.toggle('open', isOpen);
+      overlay.classList.toggle('show', isOpen);
+      if (isOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = '';
+      }
+    }
+    return;
+  }
+
+  // Click overlay to close mobile sidebar
+  if (e.target.id === 'admin-mobile-overlay') {
+    const sidebar = document.getElementById('admin-sidebar');
+    const toggleBtn = document.getElementById('admin-nav-toggle');
+    const overlay = document.getElementById('admin-mobile-overlay');
+    if (sidebar && toggleBtn && overlay) {
+      sidebar.classList.remove('open');
+      toggleBtn.classList.remove('open');
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
     return;
   }
 
@@ -647,6 +658,17 @@ document.addEventListener('click', (e) => {
   if (navItem && navItem.dataset.tab) {
     adminState.activeTab = navItem.dataset.tab;
     renderActiveTab();
+
+    // Close sidebar on mobile
+    const sidebar = document.getElementById('admin-sidebar');
+    const toggleBtn = document.getElementById('admin-nav-toggle');
+    const overlay = document.getElementById('admin-mobile-overlay');
+    if (sidebar && toggleBtn && overlay) {
+      sidebar.classList.remove('open');
+      toggleBtn.classList.remove('open');
+      overlay.classList.remove('show');
+      document.body.style.overflow = '';
+    }
     return;
   }
 
@@ -703,8 +725,9 @@ document.addEventListener('click', (e) => {
   }
 });
 
-// Status select change
+// Change events
 document.addEventListener('change', (e) => {
+  // Status select change
   if (e.target.classList.contains('admin-status-select')) {
     const id = parseInt(e.target.dataset.inquiryId);
     const newStatus = e.target.value;
@@ -712,16 +735,20 @@ document.addEventListener('change', (e) => {
     e.target.style.background = statusBg(newStatus);
   }
 
-  // Password strength indicator
-  if (e.target.id === 'cred-new-pass') {
-    updatePasswordStrength(e.target.value);
-  }
-});
-
-// Password input live strength
-document.addEventListener('input', (e) => {
-  if (e.target.id === 'cred-new-pass') {
-    updatePasswordStrength(e.target.value);
+  // Handle local image file upload
+  if (e.target.id === 'pm-image-file') {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const textInput = document.getElementById('pm-image');
+        if (textInput) {
+          textInput.value = event.target.result;
+          showToast('Image loaded successfully from device!');
+        }
+      };
+      reader.readAsDataURL(file);
+    }
   }
 });
 
@@ -731,13 +758,6 @@ document.addEventListener('submit', (e) => {
   if (e.target.id === 'store-settings-form') {
     e.preventDefault();
     saveStoreSettings();
-    return;
-  }
-
-  // Credentials form
-  if (e.target.id === 'credentials-form') {
-    e.preventDefault();
-    updateCredentials();
     return;
   }
 
@@ -848,61 +868,6 @@ function saveStoreSettings() {
   }
 }
 
-async function updateCredentials() {
-  const errorEl = document.getElementById('cred-error');
-  const successEl = document.getElementById('cred-success');
-  if (errorEl) { errorEl.style.display = 'none'; errorEl.textContent = ''; }
-  if (successEl) successEl.style.display = 'none';
-
-  const currentPassword = document.getElementById('cred-current-pass')?.value;
-  const newEmail = document.getElementById('cred-new-email')?.value;
-  const displayName = document.getElementById('cred-display-name')?.value;
-  const newPassword = document.getElementById('cred-new-pass')?.value;
-  const confirmNewPassword = document.getElementById('cred-confirm-pass')?.value;
-
-  if (!currentPassword) {
-    if (errorEl) { errorEl.textContent = 'Current password is required'; errorEl.style.display = 'block'; }
-    return;
-  }
-
-  if (newPassword && newPassword.length < 8) {
-    if (errorEl) { errorEl.textContent = 'New password must be at least 8 characters'; errorEl.style.display = 'block'; }
-    return;
-  }
-
-  if (newPassword && newPassword !== confirmNewPassword) {
-    if (errorEl) { errorEl.textContent = 'New password and confirmation do not match'; errorEl.style.display = 'block'; }
-    return;
-  }
-
-  try {
-    await updateAdminCredentials(currentPassword, newEmail, newPassword, displayName);
-    
-    const emailChanged = newEmail && newEmail.toLowerCase() !== adminState.profile.email.toLowerCase();
-    const passwordChanged = !!newPassword;
-
-    if (emailChanged || passwordChanged) {
-      showToast('Credentials updated — logging you out...');
-      sessionStorage.setItem('amras_cred_updated', '1');
-      setTimeout(() => {
-        logoutAdmin();
-      }, 1500);
-    } else {
-      showToast('Security settings updated successfully!');
-      const profile = getAdminProfile();
-      if (profile) {
-        adminState.profile = profile;
-        // Update owner name badge in header dynamically
-        const badgeEl = document.querySelector('.admin-user-name');
-        if (badgeEl) badgeEl.textContent = profile.displayName;
-      }
-      renderActiveTab();
-    }
-  } catch (err) {
-    if (errorEl) { errorEl.textContent = err.message || 'Failed to update credentials'; errorEl.style.display = 'block'; }
-  }
-}
-
 // ============================================
 // UTILITIES
 // ============================================
@@ -931,38 +896,4 @@ function statusBg(status) {
   if (status === 'In Progress') return '#dde0bb';
   if (status === 'Completed') return '#e8d4d7';
   return '#F6EAD4';
-}
-
-function updatePasswordStrength(password) {
-  const fill = document.getElementById('pass-strength-fill');
-  const text = document.getElementById('pass-strength-text');
-  if (!fill || !text) return;
-
-  if (!password) {
-    fill.className = 'password-strength-fill';
-    fill.style.width = '0';
-    text.textContent = '';
-    return;
-  }
-
-  let score = 0;
-  if (password.length >= 8) score++;
-  if (password.length >= 12) score++;
-  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-  if (/\d/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 2) {
-    fill.className = 'password-strength-fill weak';
-    text.className = 'password-strength-text weak';
-    text.textContent = 'Weak';
-  } else if (score <= 3) {
-    fill.className = 'password-strength-fill medium';
-    text.className = 'password-strength-text medium';
-    text.textContent = 'Medium';
-  } else {
-    fill.className = 'password-strength-fill strong';
-    text.className = 'password-strength-text strong';
-    text.textContent = 'Strong';
-  }
 }
