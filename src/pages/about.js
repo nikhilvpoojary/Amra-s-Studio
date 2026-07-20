@@ -55,62 +55,62 @@ export function renderAbout() {
     <section class="section section-alt">
       <div class="container text-center">
         <span class="section-subtitle">What We Excel At</span>
-        <h2 style="font-family: var(--font-heading); font-style: italic; font-size: var(--fs-4xl); font-weight: var(--fw-semibold);">Our Offerings & Specialties</h2>
+        <h2 style="font-family: var(--font-heading); font-style: italic; font-size: clamp(2rem, 5vw, var(--fs-4xl)); font-weight: var(--fw-semibold);">Our Offerings & Specialties</h2>
         <p class="section-desc" style="margin: 0 auto var(--space-2xl); font-style: italic; font-family: var(--font-subheading); font-weight: var(--fw-light);">
           Every creation is fully customizable to suit your color schemes, themes, sizes, and enhancements.
         </p>
 
         <div class="grid grid-4">
-          <div class="category-card" style="background-color: #fdffa2; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #fdffa2;">
             <div class="category-icon">💐</div>
             <div class="category-name">Handmade Bouquets</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Elegant multi-flower arrangements beautifully wrapped.
             </p>
           </div>
-          <div class="category-card" style="background-color: #ddd3ca; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #ddd3ca;">
             <div class="category-icon">🌷</div>
             <div class="category-name">Single Flowers</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Delightful solo stems in personalized packaging.
             </p>
           </div>
-          <div class="category-card" style="background-color: #ffd4c4; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #ffd4c4;">
             <div class="category-icon">👰</div>
             <div class="category-name">Bridal Bouquets</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Unfading florals for your special wedding memories.
             </p>
           </div>
-          <div class="category-card" style="background-color: #d1efef; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #d1efef;">
             <div class="category-icon">🧺</div>
             <div class="category-name">Flower Baskets</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Whimsical wicker baskets filled with gorgeous blooms.
             </p>
           </div>
-          <div class="category-card" style="background-color: #EFD7CF; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #EFD7CF;">
             <div class="category-icon">💡</div>
             <div class="category-name">Floral Lamps</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Warm fairy light illuminations inside custom layouts.
             </p>
           </div>
-          <div class="category-card" style="background-color: #DDBAAE; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #DDBAAE;">
             <div class="category-icon">✨</div>
             <div class="category-name">Custom Arrangements</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Tailor-made structural variations for any space.
             </p>
           </div>
-          <div class="category-card" style="background-color: #EFD7CF; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #EFD7CF;">
             <div class="category-icon">🎁</div>
             <div class="category-name">Gift Sets</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
               Combined packages featuring notes and gifts.
             </p>
           </div>
-          <div class="category-card" style="background-color: #DCD4C1; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #DCD4C1;">
             <div class="category-icon">🧸</div>
             <div class="category-name">Plushie Add-ons</div>
             <p style="color: #893941; font-size: var(--fs-sm); margin-top:var(--space-sm);">
@@ -129,7 +129,7 @@ export function renderAbout() {
           Make your gift truly personal. We seamlessly adapt lights, pearls, personalized hand-written notes, 
           custom color themes, bouquet sizes, and bespoke structures to match reference images.
         </p>
-        <a href="#custom-order" class="btn btn-primary">Start Designing Your Custom Arrangement</a>
+        <a href="#custom-order" class="btn btn-primary"><span class="hide-mobile">Start Designing Your </span>Custom Arrangement</a>
       </div>
     </section>
   `;

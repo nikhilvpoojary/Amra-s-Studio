@@ -40,7 +40,7 @@ export function renderHome() {
     <section class="section">
       <div class="container text-center">
         <span class="section-subtitle">What We Create</span>
-        <h2 class="section-title offerings-title" style="font-family: var(--font-heading); font-style: italic; font-size: var(--fs-4xl); font-weight: var(--fw-semibold);">Our Offerings</h2>
+        <h2 class="section-title offerings-title" style="font-family: var(--font-heading); font-style: italic; font-size: clamp(2rem, 5vw, var(--fs-4xl)); font-weight: var(--fw-semibold);">Our Offerings</h2>
         <p class="section-desc" style="margin: 0 auto var(--space-2xl); font-style: italic; font-family: var(--font-subheading); font-weight: var(--fw-light);">
           From elegant single flowers to luxurious bridal bouquets and custom floral creations,
           each design is crafted with care and creativity.
@@ -50,7 +50,7 @@ export function renderHome() {
             // Updated Gift Sets card background from #F6EAD4 to #EFD7CF to avoid blending into page background
             const bg = ['#fdffa2', '#ddd3ca', '#ffd4c4', '#d1efef', '#EFD7CF', '#DDBAAE', '#EFD7CF', '#DCD4C1'];
             return `
-              <a href="#shop" class="category-card" style="background-color: ${bg[i]}; padding: var(--space-2xl);">
+              <a href="#shop" class="category-card" style="background-color: ${bg[i]};">
                 <div class="category-icon">${o.icon}</div>
                 <div class="category-name" style="color: #893941;">${o.name}</div>
                 <div class="category-count" style="color: #893941;">${o.desc}</div>
@@ -81,21 +81,21 @@ export function renderHome() {
         <span class="section-subtitle">Why Amra's Studio</span>
         <h2 class="section-title">Crafted to Perfection</h2>
         <div class="grid grid-3" style="margin-top: var(--space-2xl);">
-          <div class="category-card" style="background-color: #EFD7CF; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #EFD7CF;">
             <div class="category-icon">🎨</div>
             <div class="category-name" style="color: #893941;">100% Handmade</div>
             <p style="color: #893941; font-size: var(--fs-sm);">
               Every flower is carefully handcrafted from start to finish using premium imported materials.
             </p>
           </div>
-          <div class="category-card" style="background-color: #DDBAAE; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #DDBAAE;">
             <div class="category-icon">🌸</div>
             <div class="category-name" style="color: #893941;">Everlasting Beauty</div>
             <p style="color: #893941; font-size: var(--fs-sm);">
               Made from premium pipe cleaners that keep their shape and vibrant colors forever. No wilting.
             </p>
           </div>
-          <div class="category-card" style="background-color: #DCD4C1; padding: var(--space-2xl);">
+          <div class="category-card" style="background-color: #DCD4C1;">
             <div class="category-icon">✨</div>
             <div class="category-name" style="color: #893941;">Fully Customizable</div>
             <p style="color: #893941; font-size: var(--fs-sm);">
@@ -132,17 +132,17 @@ export function renderHome() {
     <section class="section">
       <div class="container">
         <div class="grid grid-3 text-center">
-          <div style="background-color: #d1efef; padding: var(--space-2xl); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+          <div class="delivery-card" style="background-color: #d1efef; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
             <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">🚚</div>
             <h4 style="margin-bottom: var(--space-xs); color: #893941;">All India Delivery</h4>
             <p style="color: #893941; font-size: var(--fs-sm);">We ship across India with care.</p>
           </div>
-          <div style="background-color: #ffd4c4; padding: var(--space-2xl); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+          <div class="delivery-card" style="background-color: #ffd4c4; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
             <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">⏱️</div>
             <h4 style="margin-bottom: var(--space-xs); color: #893941;">2-4 Days Crafting</h4>
             <p style="color: #893941; font-size: var(--fs-sm);">Each piece made fresh for you.</p>
           </div>
-          <div style="background-color: #ddd3ca; padding: var(--space-2xl); border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
+          <div class="delivery-card" style="background-color: #ddd3ca; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);">
             <div style="font-size: 2.5rem; margin-bottom: var(--space-sm);">💝</div>
             <h4 style="margin-bottom: var(--space-xs); color: #893941;">Gift Ready</h4>
             <p style="color: #893941; font-size: var(--fs-sm);">Beautiful packaging included.</p>

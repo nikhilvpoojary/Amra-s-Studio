@@ -1472,3 +1472,17 @@
     padding-right: 2.5rem !important;
   }
 }
+
+/* Delivery card styling and responsive paddings for category-card & delivery-card */
+.delivery-card {
+  padding: var(--space-2xl);
+}
+
+@media (max-width: 768px) {
+  .category-card {
+    padding: var(--space-md) !important;
+  }
+  .delivery-card {
+    padding: var(--space-md) !important;
+  }
+}
