@@ -48,10 +48,10 @@
   --fs-md: 1.125rem;
   --fs-lg: 1.25rem;
   --fs-xl: 1.5rem;
-  --fs-2xl: 2rem;
-  --fs-3xl: 2.5rem;
-  --fs-4xl: 3.5rem;
-  --fs-5xl: 4.5rem;
+  --fs-2xl: clamp(1.5rem, 2.5vw + 0.5rem, 2rem);
+  --fs-3xl: clamp(1.75rem, 3vw + 0.5rem, 2.5rem);
+  --fs-4xl: clamp(2rem, 4vw + 0.5rem, 3.5rem);
+  --fs-5xl: clamp(2.5rem, 5vw + 0.5rem, 4.5rem);
 
   --fw-light: 300;
   --fw-regular: 400;
@@ -109,4 +109,21 @@
   --container-2xl: 1400px;
 
   --nav-height: 72px;
+}
+
+/* ---- Responsive Spacing Overrides ---- */
+@media (max-width: 768px) {
+  :root {
+    --space-3xl: 2.5rem;
+    --space-4xl: 3.5rem;
+    --space-5xl: 5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --space-3xl: 2rem;
+    --space-4xl: 2.5rem;
+    --space-5xl: 3rem;
+  }
 }

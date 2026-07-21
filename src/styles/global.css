@@ -121,7 +121,7 @@ p {
 .section-subtitle,
 .eyebrow-label {
   font-family: var(--font-script), 'Alex Brush', cursive !important;
-  font-size: 1.8rem !important;
+  font-size: clamp(1.3rem, 3.5vw, 1.8rem) !important;
   font-weight: 400 !important;
   text-transform: none !important;
   letter-spacing: 0.02em !important;
@@ -150,7 +150,13 @@ p {
   width: 100%;
   max-width: var(--container-xl);
   margin: 0 auto;
-  padding: 0 var(--space-xl);
+  padding: 0 var(--space-md);
+}
+
+@media (min-width: 769px) {
+  .container {
+    padding: 0 var(--space-xl);
+  }
 }
 
 .container-narrow {
@@ -158,7 +164,7 @@ p {
 }
 
 .section {
-  padding: var(--space-4xl) 0;
+  padding: clamp(2rem, 5vw, var(--space-4xl)) 0;
 }
 
 .section-alt {
@@ -215,15 +221,39 @@ p {
 }
 
 .grid-2 {
-  grid-template-columns: repeat(2, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .grid-3 {
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: 1fr;
 }
 
 .grid-4 {
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (min-width: 769px) {
+  .grid-2 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-3 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1025px) {
+  .grid-3 {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .grid-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 
 /* ---- Buttons ---- */
@@ -425,53 +455,9 @@ p {
 }
 
 /* ---- Responsive ---- */
-@media (max-width: 1024px) {
-  h1 {
-    font-size: var(--fs-3xl);
-  }
-
-  h2 {
-    font-size: var(--fs-2xl);
-  }
-
-  .grid-3 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .grid-4 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
 @media (max-width: 768px) {
-  h1 {
-    font-size: var(--fs-2xl);
-  }
-
-  h2 {
-    font-size: var(--fs-xl);
-  }
-
-  .container {
-    padding: 0 var(--space-md);
-  }
-
-  .section {
-    padding: var(--space-2xl) 0;
-  }
-
-  .grid-2,
-  .grid-3,
-  .grid-4 {
-    grid-template-columns: 1fr;
-  }
-
-  .btn {
-    padding: 12px 28px;
-  }
-
-  .btn-lg {
-    padding: 14px 32px;
+  :root {
+    --nav-height: 62px;
   }
 
   .hide-mobile {
@@ -484,7 +470,12 @@ p {
     --nav-height: 60px;
   }
 
-  h1 {
-    font-size: var(--fs-xl);
+  .btn {
+    padding: 10px 22px;
+    font-size: clamp(0.7rem, 2.5vw, var(--fs-sm));
+  }
+
+  .btn-lg {
+    padding: 12px 28px;
   }
 }
