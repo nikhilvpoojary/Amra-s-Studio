@@ -839,35 +839,32 @@
 
   .admin-sidebar {
     position: fixed !important;
-    top: 0 !important;
+    top: 54px !important;
+    bottom: 0 !important;
     right: -100% !important;
-    width: 0 !important;
-    min-width: 0 !important;
-    flex: 0 0 0 !important;
-    height: 0 !important;
-    padding: 0 !important;
+    width: 80% !important;
+    max-width: 320px !important;
+    height: auto !important;
+    max-height: calc(100vh - 54px) !important;
+    max-height: calc(100dvh - 54px) !important;
+    padding: 2rem 1rem !important;
     margin: 0 !important;
-    overflow: hidden !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
     background: var(--bg-primary) !important;
-    box-shadow: none !important;
+    box-shadow: var(--shadow-xl) !important;
     z-index: 1000 !important;
     visibility: hidden !important;
     transition: right var(--transition-base), visibility var(--transition-base) !important;
     display: flex !important;
     flex-direction: column !important;
-    justify-content: center !important;
+    justify-content: flex-start !important;
     align-items: center !important;
     border: none !important;
   }
 
   .admin-sidebar.open {
     right: 0 !important;
-    width: 80% !important;
-    max-width: 320px !important;
-    height: 100vh !important;
-    padding: 2rem 0 !important;
-    overflow-y: auto !important;
-    box-shadow: var(--shadow-xl) !important;
     visibility: visible !important;
   }
 

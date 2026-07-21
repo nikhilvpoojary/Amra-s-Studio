@@ -221,6 +221,13 @@ function renderPage() {
     mainContent.style.opacity = '1';
     mainContent.style.transform = 'translateY(0)';
 
+    // Reset transform after animation so fixed elements (e.g. admin mobile nav) anchor to viewport
+    setTimeout(() => {
+      if (mainContent.style.transform === 'translateY(0px)' || mainContent.style.transform === 'translateY(0)') {
+        mainContent.style.transform = 'none';
+      }
+    }, 450);
+
     // Scroll to top
     window.scrollTo({ top: 0, behavior: 'smooth' });
 
